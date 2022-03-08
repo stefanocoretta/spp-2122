@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Linear models</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Stefano Coretta" />
+    <meta name="date" content="2022-03-08" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
+    <link href="libs/panelset/panelset.css" rel="stylesheet" />
+    <script src="libs/panelset/panelset.js"></script>
+    <link rel="stylesheet" href="../ipa-fonts.css" type="text/css" />
+    <link rel="stylesheet" href="../custom.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Linear models
+## Modelling binary outcomes
+### Stefano Coretta
+### University of Edinburgh
+### 2022-03-08
+
+---
+
+
+
+
+
+
+
+
+class: center middle
+
+![:scale 40%](../img/charlesdeluvio-D44HIk-qsvI-unsplash.jpg)
+
+???
+
+Photo by &lt;a href="https://unsplash.com/@charlesdeluvio?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;charlesdeluvio&lt;/a&gt; on &lt;a href="https://unsplash.com/s/photos/sad-puppy?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;Unsplash&lt;/a&gt;
+  
+---
+
+class: center middle
+
+![:scale 90%](../img/joe-caione-qO-PIF84Vxg-unsplash.jpg)
+
+???
+
+Photo by &lt;a href="https://unsplash.com/@joeyc?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;Joe Caione&lt;/a&gt; on &lt;a href="https://unsplash.com/s/photos/happy-puppy?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;Unsplash&lt;/a&gt;
+
+---
+
+# Exercise 1: Articulation rate and politeness
+
+- Data from Winter and Grawunder 2012.
+
+- 16 speakers of Korean recorded in Germany.
+
+- Informal vs polite (formal) speech.
+
+- 6 of those speakers were music students.
+
+
+???
+
+Bodo Winter, Sven Grawunder. 2012. The phonetic profile of Korean formal and informal speech registers, Journal of Phonetics 40(6). 808-815. https://doi.org/10.1016/j.wocn.2012.08.006
+
+---
+
+# Exercise 1: Articulation rate and politeness
+
+
+```r
+art_lm_1 &lt;- lmer(
+  articulation_rate ~
+    attitude *
+    musicstudent +
+    (attitude|subject),
+  data = polite
+)
+
+tidy(art_lm_1, effects = "fixed")
+```
+
+```
+## # A tibble: 4 × 5
+##   effect term                  estimate std.error statistic
+##   &lt;chr&gt;  &lt;chr&gt;                    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1 fixed  (Intercept)              7.13      0.210     34.0 
+## 2 fixed  attitudepol             -0.574     0.234     -2.45
+## 3 fixed  musicstudentyes         -0.667     0.342     -1.95
+## 4 fixed  attitudepol:musicstu…    0.441     0.382      1.15
+```
+
+---
+
+# Exercise 1: Articulation rate and politeness
+
+&lt;img src="index_files/figure-html/art-rate-plot-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Exercise 2: Mean f0 and politeness
+
+
+```r
+f0_lm_1 &lt;- lmer(
+  f0mn ~
+    attitude *
+    years_in_ger +
+    # random slope by attitude leads to singular fit...
+    (1|subject),
+  data = polite
+)
+
+tidy(f0_lm_1, effects = "fixed")
+```
+
+```
+## # A tibble: 4 × 5
+##   effect term                  estimate std.error statistic
+##   &lt;chr&gt;  &lt;chr&gt;                    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1 fixed  (Intercept)            200.       21.5       9.31 
+## 2 fixed  attitudepol            -18.4       5.53     -3.33 
+## 3 fixed  years_in_ger             0.777     3.56      0.218
+## 4 fixed  attitudepol:years_in…    1.16      0.898     1.30
+```
+
+---
+
+# Exercise 2: Mean f0 and politeness
+
+&lt;img src="index_files/figure-html/f0-plot-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+class: center middle reverse
+
+# Articulation rate and mean f0 are .green[continuous] (numeric) outcome variables...
+
+---
+
+class: center middle reverse
+
+# But binary outcomes, like yes/no, correct/incorrect, true/false are not continuous!
+
+---
+
+class: center middle
+
+.f1.link.dim.br3.ph3.dib.white.bg-purple[
+[.white[Probability distributions]](https://seeing-theory.brown.edu/probability-distributions/index.html#section2)
+]
+
+---
+
+# Binary outcome: Bernoulli distribution
+
+.center[
+&lt;a title="Niklaus Bernoulli (1662-1716), Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:Jakob_Bernoulli.jpg"&gt;&lt;img width="512" alt="Jakob Bernoulli" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Jakob_Bernoulli.jpg/512px-Jakob_Bernoulli.jpg"&gt;&lt;/a&gt;
+]
+
+---
+
+# Binary outcome: Bernoulli distribution
+
+
+
+---
+
+# Do you notice something weird?
+
+
+
+---
+
+# Log-odds
+
+
+```r
+# What is the log of 1?
+log(1)
+```
+
+```
+## [1] 0
+```
+
+```r
+# What is the exponential function at 0?
+exp(0)
+```
+
+```
+## [1] 1
+```
+
+--
+
+&lt;br&gt;
+
+Now try different numbers with `log()` and `exp()`.
+
+---
+
+# From log-odds to odds
+
+&lt;img src="index_files/figure-html/log-odds-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# From log-odds to odds: Examples
+
+- 10 mo infants perform on average 10 iconic gestures per day. At 11 mo, the number of gestures increases by a factor of 1.6. At 12 mo, there is a further increase by a factor of 1.2.
+
+--
+
+  - Calculate the average number of gestures per day at 12 months based on the 10 month average (10 gestures).
+
+--
+
+- The average number of errors L2 learners make decreases by a factor of 0.2 every year and a half.
+
+--
+
+  - Calculate the average number of errors after 6 years, assuming 265 errors at year 1.
+
+---
+
+# From log-odds to probabilities
+
+
+```
+## [1] 1
+```
+
+```
+## [1] 0.5
+```
+
+```
+## [1] 0.7310586
+```
+
+--
+
+&lt;br&gt;
+
+Now try different numbers with `plogis()`.
+
+---
+
+# From log-odds to probabilities
+
+&lt;img src="index_files/figure-html/p-log-odds-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Binary outcome: Bernoulli distribution
+
+
+
+---
+
+# Binary outcome: Bernoulli distribution
+
+
+
+
+---
+
+# Binary outcome: Bernoulli distribution
+
+
+
+
+---
+
+# Binary outcome: Bernoulli distribution
+
+
+
+
+---
+
+# BTW, the normal distribution ain't that normal
+
+.center[
+![:scale 90%](../img/skew-you.jpeg)
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="../macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
