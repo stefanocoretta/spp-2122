@@ -1,6 +1,6 @@
 ---
 title: "Linear models"
-subtitle: "Modelling binary outcomes"
+subtitle: "<br><br>Modelling binary outcomes"
 author: "Stefano Coretta"
 institute: "University of Edinburgh"
 date: "`r Sys.Date()`"
@@ -40,6 +40,9 @@ polite <- read_csv("01-linear-models/polite.csv") %>%
     attitude = factor(attitude, levels = c("inf", "pol")),
     musicstudent = factor(musicstudent, levels = c("no", "yes"))
   )
+
+sanker2020 <- read_csv("01-linear-models/sanker2020.csv") %>%
+  mutate(OrigCoda = factor(OrigCoda, levels = c("voiceless", "voiced")))
 ```
 
 
@@ -164,35 +167,74 @@ class: center middle
 
 # Binary outcome: Bernoulli distribution
 
-```{r shallow-lm-1}
+```{r sanker-lm-1, echo=TRUE}
+sanker_lm_1 <- glmer(
+  Longresps ~
+    durationstep +
+    (durationstep | participant),
+  data = sanker2020,
+  family = binomial
+)
 
+tidy(sanker_lm_1, effects = "fixed")
 ```
 
 ---
 
-# Do you notice something weird?
+# Do you notice something weird in the output?
 
-```{r shallow-lm-1-2}
+```{r sanker-lm-1-2, echo=TRUE}
+sanker_lm_1 <- glmer(
+  Longresps ~
+    durationstep +
+    (durationstep | participant),
+  data = sanker2020,
+  family = binomial
+)
 
+tidy(sanker_lm_1, effects = "fixed")
 ```
 
 ---
 
-# Log-odds
+class: right middle inverse
+
+# The estimates are in .green[log-odds] (or simply logs).
+
+# To make sense of them we need to .green[transform] them.
+
+---
+
+# Exponential function
+
+We can transform log-odds into odds with `exp()`.
 
 ```{r log-exp, echo=TRUE}
-# What is the log of 1?
-log(1)
-
-# What is the exponential function at 0?
+# What is the exponential function at log = 0?
 exp(0)
+
+# What is the exponential function at log = 1?
+exp(1)
 ```
 
---
+---
 
-<br>
+# Exponential function
 
-Now try different numbers with `log()` and `exp()`.
+Now try different numbers with `exp()`.
+
+You can transform back the exponentiated number with the `log()` function.
+
+```{r logs, echo=TRUE}
+# With log = 0
+# exp(0) = 1
+exp(0)
+
+# With exp = 1
+# log(1) = 0
+log(1)
+```
+
 
 ---
 
@@ -220,35 +262,15 @@ tibble(
 
 ---
 
-# From log-odds to odds: Examples
+# Logistic function
 
-- 10 mo infants perform on average 10 iconic gestures per day. At 11 mo, the number of gestures increases by a factor of 1.6. At 12 mo, there is a further increase by a factor of 1.2.
-
---
-
-  - Calculate the average number of gestures per day at 12 months based on the 10 month average (10 gestures).
-
---
-
-- The average number of errors L2 learners make decreases by a factor of 0.2 every year and a half.
-
---
-
-  - Calculate the average number of errors after 6 years, assuming 265 errors at year 1.
-
----
-
-# From log-odds to probabilities
+We can transform logs into probabilities with the logistic function `plogis()`
 
 ```{r plogis}
-# What is the exponential function at 0 log-odds?
-# In other words, what are the odds at 0 log-odds?
-exp(0)
-
-# What is the probability at 0 log-odds?
+# What is the probability when log-odds = 0?
 plogis(0)
 
-# What is the probability at 1 log-odds?
+# What is the probability when log-odds = 1?
 plogis(1)
 ```
 
@@ -256,7 +278,7 @@ plogis(1)
 
 <br>
 
-Now try different numbers with `plogis()`.
+Now try different positive and negative numbers with `plogis()`.
 
 ---
 
@@ -292,25 +314,17 @@ tibble(
 
 # Binary outcome: Bernoulli distribution
 
-```{r shallow-lm-1-3}
-
+```{r sanker-lm-1-3}
+tidy(sanker_lm_1, effects = "fixed")
 ```
 
 ---
 
 # Binary outcome: Bernoulli distribution
 
-```{r shallow-lm-1-plot}
-
-```
-
-
----
-
-# Binary outcome: Bernoulli distribution
-
-```{r shallow-lm-2}
-
+```{r sanker-lm-1-plot, message=FALSE, warning=FALSE}
+ggpredict(sanker_lm_1, terms = "durationstep") %>%
+  plot()
 ```
 
 
@@ -318,10 +332,65 @@ tibble(
 
 # Binary outcome: Bernoulli distribution
 
-```{r shallow-lm-2-plot}
+```{r sanker-lm-2}
+sanker_lm_2 <- glmer(
+  Longresps ~
+    durationstep *
+    OrigCoda +
+    # random slope by OrigCoda leads to singular fit/non-convergence...
+    (durationstep | participant),
+  data = sanker2020,
+  family = binomial
+)
 
+tidy(sanker_lm_2, effects = "fixed")
 ```
 
+
+---
+
+# Binary outcome: Bernoulli distribution
+
+```{r sanker-lm-2-plot}
+ggpredict(sanker_lm_2, terms = c("durationstep", "OrigCoda")) %>%
+  plot()
+```
+
+---
+
+# Exercise 3: Perception of place of articulation in Pitjantjatjara
+
+- You create a set of stimuli by manipulating the Centre of Gravity of the burst of a stop to vary between 1 kHz and 4 kHz, in steps of 500 Hz (6 steps).
+
+- Your participants are native speakers of Pitjantjatjara (Central Australian), which has five stop places of articulation /p t ʈ c k/.
+
+- You ask them to identify what they hear as either /ʈ/ (0) or /c/ (1).
+
+- A linear model with a Bernoulli distribution for the response returns an intercept = -2.5 and an estimated effect of CoG step = 0.8.
+
+Calculate with the `plogis()` function:
+
+- The average probability of a /c/ response at CoG = 1000.
+
+- The average probability of a /c/ response at CoG = 2500.
+
+- The average probability of a /c/ response at CoG = 3750.
+
+---
+
+class: center middle
+
+![:scale 90%](../img/joe-caione-qO-PIF84Vxg-unsplash.jpg)
+
+???
+
+Photo by <a href="https://unsplash.com/@joeyc?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Joe Caione</a> on <a href="https://unsplash.com/s/photos/happy-puppy?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+
+---
+
+class: center middle inverse
+
+# THE END
 
 ---
 

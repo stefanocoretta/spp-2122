@@ -4,7 +4,7 @@
     <title>Linear models</title>
     <meta charset="utf-8" />
     <meta name="author" content="Stefano Coretta" />
-    <meta name="date" content="2022-03-08" />
+    <meta name="date" content="2022-03-09" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
@@ -18,10 +18,10 @@
 class: center, middle, inverse, title-slide
 
 # Linear models
-## Modelling binary outcomes
+## <br><br>Modelling binary outcomes
 ### Stefano Coretta
 ### University of Edinburgh
-### 2022-03-08
+### 2022-03-09
 
 ---
 
@@ -86,12 +86,12 @@ tidy(art_lm_1, effects = "fixed")
 
 ```
 ## # A tibble: 4 × 5
-##   effect term                  estimate std.error statistic
-##   &lt;chr&gt;  &lt;chr&gt;                    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
-## 1 fixed  (Intercept)              7.13      0.210     34.0 
-## 2 fixed  attitudepol             -0.574     0.234     -2.45
-## 3 fixed  musicstudentyes         -0.667     0.342     -1.95
-## 4 fixed  attitudepol:musicstu…    0.441     0.382      1.15
+##   effect term                        estimate std.error statistic
+##   &lt;chr&gt;  &lt;chr&gt;                          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1 fixed  (Intercept)                    7.13      0.210     34.0 
+## 2 fixed  attitudepol                   -0.574     0.234     -2.45
+## 3 fixed  musicstudentyes               -0.667     0.342     -1.95
+## 4 fixed  attitudepol:musicstudentyes    0.441     0.382      1.15
 ```
 
 ---
@@ -120,12 +120,12 @@ tidy(f0_lm_1, effects = "fixed")
 
 ```
 ## # A tibble: 4 × 5
-##   effect term                  estimate std.error statistic
-##   &lt;chr&gt;  &lt;chr&gt;                    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
-## 1 fixed  (Intercept)            200.       21.5       9.31 
-## 2 fixed  attitudepol            -18.4       5.53     -3.33 
-## 3 fixed  years_in_ger             0.777     3.56      0.218
-## 4 fixed  attitudepol:years_in…    1.16      0.898     1.30
+##   effect term                     estimate std.error statistic
+##   &lt;chr&gt;  &lt;chr&gt;                       &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;
+## 1 fixed  (Intercept)               200.       21.5       9.31 
+## 2 fixed  attitudepol               -18.4       5.53     -3.33 
+## 3 fixed  years_in_ger                0.777     3.56      0.218
+## 4 fixed  attitudepol:years_in_ger    1.16      0.898     1.30
 ```
 
 ---
@@ -167,29 +167,68 @@ class: center middle
 # Binary outcome: Bernoulli distribution
 
 
+```r
+sanker_lm_1 &lt;- glmer(
+  Longresps ~
+    durationstep +
+    (durationstep | participant),
+  data = sanker2020,
+  family = binomial
+)
+
+tidy(sanker_lm_1, effects = "fixed")
+```
+
+```
+## # A tibble: 2 × 6
+##   effect term         estimate std.error statistic  p.value
+##   &lt;chr&gt;  &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 fixed  (Intercept)    -3.01     0.311      -9.70 3.11e-22
+## 2 fixed  durationstep    0.538    0.0474     11.3  8.89e-30
+```
 
 ---
 
-# Do you notice something weird?
+# Do you notice something weird in the output?
 
 
+```r
+sanker_lm_1 &lt;- glmer(
+  Longresps ~
+    durationstep +
+    (durationstep | participant),
+  data = sanker2020,
+  family = binomial
+)
+
+tidy(sanker_lm_1, effects = "fixed")
+```
+
+```
+## # A tibble: 2 × 6
+##   effect term         estimate std.error statistic  p.value
+##   &lt;chr&gt;  &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 fixed  (Intercept)    -3.01     0.311      -9.70 3.11e-22
+## 2 fixed  durationstep    0.538    0.0474     11.3  8.89e-30
+```
 
 ---
 
-# Log-odds
+class: right middle inverse
+
+# The estimates are in .green[log-odds] (or simply logs).
+
+# To make sense of them we need to .green[transform] them.
+
+---
+
+# Exponential function
+
+We can transform log-odds into odds with `exp()`.
 
 
 ```r
-# What is the log of 1?
-log(1)
-```
-
-```
-## [1] 0
-```
-
-```r
-# What is the exponential function at 0?
+# What is the exponential function at log = 0?
 exp(0)
 ```
 
@@ -197,11 +236,44 @@ exp(0)
 ## [1] 1
 ```
 
---
+```r
+# What is the exponential function at log = 1?
+exp(1)
+```
 
-&lt;br&gt;
+```
+## [1] 2.718282
+```
 
-Now try different numbers with `log()` and `exp()`.
+---
+
+# Exponential function
+
+Now try different numbers with `exp()`.
+
+You can transform back the exponentiated number with the `log()` function.
+
+
+```r
+# With log = 0
+# exp(0) = 1
+exp(0)
+```
+
+```
+## [1] 1
+```
+
+```r
+# With exp = 1
+# log(1) = 0
+log(1)
+```
+
+```
+## [1] 0
+```
+
 
 ---
 
@@ -211,30 +283,10 @@ Now try different numbers with `log()` and `exp()`.
 
 ---
 
-# From log-odds to odds: Examples
+# Logistic function
 
-- 10 mo infants perform on average 10 iconic gestures per day. At 11 mo, the number of gestures increases by a factor of 1.6. At 12 mo, there is a further increase by a factor of 1.2.
+We can transform logs into probabilities with the logistic function `plogis()`
 
---
-
-  - Calculate the average number of gestures per day at 12 months based on the 10 month average (10 gestures).
-
---
-
-- The average number of errors L2 learners make decreases by a factor of 0.2 every year and a half.
-
---
-
-  - Calculate the average number of errors after 6 years, assuming 265 errors at year 1.
-
----
-
-# From log-odds to probabilities
-
-
-```
-## [1] 1
-```
 
 ```
 ## [1] 0.5
@@ -248,7 +300,7 @@ Now try different numbers with `log()` and `exp()`.
 
 &lt;br&gt;
 
-Now try different numbers with `plogis()`.
+Now try different positive and negative numbers with `plogis()`.
 
 ---
 
@@ -261,27 +313,78 @@ Now try different numbers with `plogis()`.
 # Binary outcome: Bernoulli distribution
 
 
+```
+## # A tibble: 2 × 6
+##   effect term         estimate std.error statistic  p.value
+##   &lt;chr&gt;  &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 fixed  (Intercept)    -3.01     0.311      -9.70 3.11e-22
+## 2 fixed  durationstep    0.538    0.0474     11.3  8.89e-30
+```
+
+---
+
+# Binary outcome: Bernoulli distribution
+
+&lt;img src="index_files/figure-html/sanker-lm-1-plot-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
 
 ---
 
 # Binary outcome: Bernoulli distribution
 
 
+```
+## # A tibble: 4 × 6
+##   effect term                        estimate std.error statistic  p.value
+##   &lt;chr&gt;  &lt;chr&gt;                          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 fixed  (Intercept)                  -3.07      0.332     -9.25  2.35e-20
+## 2 fixed  durationstep                  0.526     0.0509    10.3   4.31e-25
+## 3 fixed  OrigCodavoiced                0.0925    0.225      0.411 6.81e- 1
+## 4 fixed  durationstep:OrigCodavoiced   0.0264    0.0371     0.710 4.78e- 1
+```
 
 
 ---
 
 # Binary outcome: Bernoulli distribution
 
-
-
+&lt;img src="index_files/figure-html/sanker-lm-2-plot-1.png" height="500px" style="display: block; margin: auto;" /&gt;
 
 ---
 
-# Binary outcome: Bernoulli distribution
+# Exercise 3: Perception of place of articulation in Pitjantjatjara
 
+- You create a set of stimuli by manipulating the Centre of Gravity of the burst of a stop to vary between 1 kHz and 4 kHz, in steps of 500 Hz (6 steps).
 
+- Your participants are native speakers of Pitjantjatjara (Central Australian), which has five stop places of articulation /p t ʈ c k/.
 
+- You ask them to identify what they hear as either /ʈ/ (0) or /c/ (1).
+
+- A linear model with a Bernoulli distribution for the response returns an intercept = -2.5 and an estimated effect of CoG step = 0.8.
+
+Calculate with the `plogis()` function:
+
+- The average probability of a /c/ response at CoG = 1000.
+
+- The average probability of a /c/ response at CoG = 2500.
+
+- The average probability of a /c/ response at CoG = 3750.
+
+---
+
+class: center middle
+
+![:scale 90%](../img/joe-caione-qO-PIF84Vxg-unsplash.jpg)
+
+???
+
+Photo by &lt;a href="https://unsplash.com/@joeyc?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;Joe Caione&lt;/a&gt; on &lt;a href="https://unsplash.com/s/photos/happy-puppy?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;Unsplash&lt;/a&gt;
+
+---
+
+class: center middle inverse
+
+# THE END
 
 ---
 
