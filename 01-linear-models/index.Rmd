@@ -145,7 +145,7 @@ class: center middle reverse
 
 class: center middle reverse
 
-# But binary outcomes, like yes/no, correct/incorrect, true/false are not continuous!
+# But .green[binary outcomes], like yes/no, correct/incorrect, true/false are not continuous!
 
 ---
 
@@ -165,7 +165,24 @@ class: center middle
 
 ---
 
-# Binary outcome: Bernoulli distribution
+# Binary outcome: Perception of vowel duration
+
+- Data from Sanker 2020.
+
+- Participants listen to words and have to say if the vowel is short (0) or long (1).
+
+- Vowel duration was manipulated in 10 steps of about 15 ms each.
+
+- Furthermore, vowel splices come either from words with a final voiceless stop or from words with a final voiced stop.
+
+
+???
+
+Sanker, C. (2020). A perceptual pathway for voicing-conditioned vowel duration. Laboratory Phonology, 11(1).
+
+---
+
+# Binary outcome: Perception of vowel duration
 
 ```{r sanker-lm-1, echo=TRUE}
 sanker_lm_1 <- glmer(
@@ -202,6 +219,151 @@ class: right middle inverse
 # The estimates are in .green[log-odds] (or simply logs).
 
 # To make sense of them we need to .green[transform] them.
+
+---
+
+# Logistic function
+
+We can transform logs into probabilities with the logistic function `plogis()`
+
+```{r plogis}
+# What is the probability when log-odds = 0?
+plogis(0)
+
+# What is the probability when log-odds = 1?
+plogis(1)
+```
+
+--
+
+<br>
+
+Now try different positive and negative numbers with `plogis()`.
+
+---
+
+# From log-odds to probabilities
+
+```{r p-log-odds}
+dots <- tibble(
+  p = seq(0.1, 0.9, by = 0.1),
+  log_odds = qlogis(p)
+)
+
+tibble(
+  p = seq(0, 1, by = 0.001),
+  log_odds = qlogis(p)
+) %>%
+  ggplot(aes(log_odds, p)) +
+  geom_hline(yintercept = 0.5, linetype = "dashed") +
+  geom_hline(yintercept = 0, colour = "#8856a7", size = 1) +
+  geom_hline(yintercept = 1, colour = "#8856a7", size = 1) +
+  geom_vline(xintercept = 0, alpha = 0.5) +
+  geom_line(size = 2) +
+  geom_point(data = dots, size = 4) +
+  scale_x_continuous(breaks = seq(-6, 6, by = 2), minor_breaks = NULL) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.1), minor_breaks = NULL) +
+  labs(
+    title = "Correspondence between log-odds and probabilities",
+    x = "log-odds",
+    y = "probability"
+  )
+```
+
+---
+
+# Binary outcome: Perception of vowel duration
+
+```{r sanker-lm-1-3, echo=TRUE}
+tidy(sanker_lm_1, effects = "fixed")
+```
+
+---
+
+# Binary outcome: Perception of vowel duration
+
+```{r sanker-lm-1-plot, message=FALSE, warning=FALSE}
+ggpredict(sanker_lm_1, terms = "durationstep") %>%
+  plot()
+```
+
+---
+
+# Binary outcome: Perception of vowel duration
+
+```{r sanker-lm-2, echo=TRUE}
+sanker_lm_2 <- glmer(
+  Longresps ~
+    durationstep *
+    OrigCoda +
+    # random slope by OrigCoda leads to singular fit/non-convergence...
+    (durationstep | participant),
+  data = sanker2020,
+  family = binomial
+)
+
+tidy(sanker_lm_2, effects = "fixed")
+```
+
+
+---
+
+# Binary outcome: Perception of vowel duration
+
+```{r sanker-lm-2-plot}
+ggpredict(sanker_lm_2, terms = c("durationstep", "OrigCoda")) %>%
+  plot()
+```
+
+---
+
+# Exercise 3: Perception of place of articulation in Pitjantjatjara
+
+- You create a set of stimuli by manipulating the Centre of Gravity of the burst of a stop to vary between 1 kHz and 4 kHz, in steps of 500 Hz (6 steps).
+
+- Your participants are native speakers of Pitjantjatjara (Central Australian), which has five stop places of articulation /p t ʈ c k/.
+
+- You ask them to identify what they hear as either /ʈ/ (0) or /c/ (1).
+
+- A linear model with a Bernoulli distribution for the response returns an intercept = -2.5 and an estimated effect of CoG step = 0.8.
+
+Calculate with the `plogis()` function:
+
+- The average probability of a /c/ response at CoG = 1000.
+
+- The average probability of a /c/ response at CoG = 2500.
+
+- The average probability of a /c/ response at CoG = 3750.
+
+---
+
+class: center middle
+
+![:scale 90%](../img/joe-caione-qO-PIF84Vxg-unsplash.jpg)
+
+???
+
+Photo by <a href="https://unsplash.com/@joeyc?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Joe Caione</a> on <a href="https://unsplash.com/s/photos/happy-puppy?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
+
+---
+
+class: center middle inverse
+
+# THE END
+
+---
+
+# BTW, the normal distribution ain't that normal
+
+.center[
+![:scale 40%](../img/skew-you.jpeg)
+]
+
+---
+
+class: center middle inverse
+
+# EXTRA
 
 ---
 
@@ -259,142 +421,3 @@ tibble(
     y = "odds"
   )
 ```
-
----
-
-# Logistic function
-
-We can transform logs into probabilities with the logistic function `plogis()`
-
-```{r plogis}
-# What is the probability when log-odds = 0?
-plogis(0)
-
-# What is the probability when log-odds = 1?
-plogis(1)
-```
-
---
-
-<br>
-
-Now try different positive and negative numbers with `plogis()`.
-
----
-
-# From log-odds to probabilities
-
-```{r p-log-odds}
-dots <- tibble(
-  p = seq(0.1, 0.9, by = 0.1),
-  log_odds = qlogis(p)
-)
-
-tibble(
-  p = seq(0, 1, by = 0.001),
-  log_odds = qlogis(p)
-) %>%
-  ggplot(aes(log_odds, p)) +
-  geom_hline(yintercept = 0.5, linetype = "dashed") +
-  geom_hline(yintercept = 0, colour = "#8856a7", size = 1) +
-  geom_hline(yintercept = 1, colour = "#8856a7", size = 1) +
-  geom_vline(xintercept = 0, alpha = 0.5) +
-  geom_line(size = 2) +
-  geom_point(data = dots, size = 4) +
-  scale_x_continuous(breaks = seq(-6, 6, by = 2), minor_breaks = NULL) +
-  scale_y_continuous(breaks = seq(0, 1, by = 0.1), minor_breaks = NULL) +
-  labs(
-    title = "Correspondence between log-odds and probabilities",
-    x = "log-odds",
-    y = "probability"
-  )
-```
-
----
-
-# Binary outcome: Bernoulli distribution
-
-```{r sanker-lm-1-3}
-tidy(sanker_lm_1, effects = "fixed")
-```
-
----
-
-# Binary outcome: Bernoulli distribution
-
-```{r sanker-lm-1-plot, message=FALSE, warning=FALSE}
-ggpredict(sanker_lm_1, terms = "durationstep") %>%
-  plot()
-```
-
-
----
-
-# Binary outcome: Bernoulli distribution
-
-```{r sanker-lm-2}
-sanker_lm_2 <- glmer(
-  Longresps ~
-    durationstep *
-    OrigCoda +
-    # random slope by OrigCoda leads to singular fit/non-convergence...
-    (durationstep | participant),
-  data = sanker2020,
-  family = binomial
-)
-
-tidy(sanker_lm_2, effects = "fixed")
-```
-
-
----
-
-# Binary outcome: Bernoulli distribution
-
-```{r sanker-lm-2-plot}
-ggpredict(sanker_lm_2, terms = c("durationstep", "OrigCoda")) %>%
-  plot()
-```
-
----
-
-# Exercise 3: Perception of place of articulation in Pitjantjatjara
-
-- You create a set of stimuli by manipulating the Centre of Gravity of the burst of a stop to vary between 1 kHz and 4 kHz, in steps of 500 Hz (6 steps).
-
-- Your participants are native speakers of Pitjantjatjara (Central Australian), which has five stop places of articulation /p t ʈ c k/.
-
-- You ask them to identify what they hear as either /ʈ/ (0) or /c/ (1).
-
-- A linear model with a Bernoulli distribution for the response returns an intercept = -2.5 and an estimated effect of CoG step = 0.8.
-
-Calculate with the `plogis()` function:
-
-- The average probability of a /c/ response at CoG = 1000.
-
-- The average probability of a /c/ response at CoG = 2500.
-
-- The average probability of a /c/ response at CoG = 3750.
-
----
-
-class: center middle
-
-![:scale 90%](../img/joe-caione-qO-PIF84Vxg-unsplash.jpg)
-
-???
-
-Photo by <a href="https://unsplash.com/@joeyc?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Joe Caione</a> on <a href="https://unsplash.com/s/photos/happy-puppy?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
-
----
-
-class: center middle inverse
-
-# THE END
-
----
-
-# BTW, the normal distribution ain't that normal
-
-.center[
-![:scale 90%](../img/skew-you.jpeg)

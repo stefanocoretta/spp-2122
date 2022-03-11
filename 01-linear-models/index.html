@@ -4,7 +4,7 @@
     <title>Linear models</title>
     <meta charset="utf-8" />
     <meta name="author" content="Stefano Coretta" />
-    <meta name="date" content="2022-03-09" />
+    <meta name="date" content="2022-03-11" />
     <script src="libs/header-attrs/header-attrs.js"></script>
     <link href="libs/remark-css/default.css" rel="stylesheet" />
     <link href="libs/tachyons/tachyons.min.css" rel="stylesheet" />
@@ -21,7 +21,7 @@ class: center, middle, inverse, title-slide
 ## <br><br>Modelling binary outcomes
 ### Stefano Coretta
 ### University of Edinburgh
-### 2022-03-09
+### 2022-03-11
 
 ---
 
@@ -144,7 +144,7 @@ class: center middle reverse
 
 class: center middle reverse
 
-# But binary outcomes, like yes/no, correct/incorrect, true/false are not continuous!
+# But .green[binary outcomes], like yes/no, correct/incorrect, true/false are not continuous!
 
 ---
 
@@ -164,7 +164,24 @@ class: center middle
 
 ---
 
-# Binary outcome: Bernoulli distribution
+# Binary outcome: Perception of vowel duration
+
+- Data from Sanker 2020.
+
+- Participants listen to words and have to say if the vowel is short (0) or long (1).
+
+- Vowel duration was manipulated in 10 steps of about 15 ms each.
+
+- Furthermore, vowel splices come either from words with a final voiceless stop or from words with a final voiced stop.
+
+
+???
+
+Sanker, C. (2020). A perceptual pathway for voicing-conditioned vowel duration. Laboratory Phonology, 11(1).
+
+---
+
+# Binary outcome: Perception of vowel duration
 
 
 ```r
@@ -219,6 +236,142 @@ class: right middle inverse
 # The estimates are in .green[log-odds] (or simply logs).
 
 # To make sense of them we need to .green[transform] them.
+
+---
+
+# Logistic function
+
+We can transform logs into probabilities with the logistic function `plogis()`
+
+
+```
+## [1] 0.5
+```
+
+```
+## [1] 0.7310586
+```
+
+--
+
+&lt;br&gt;
+
+Now try different positive and negative numbers with `plogis()`.
+
+---
+
+# From log-odds to probabilities
+
+&lt;img src="index_files/figure-html/p-log-odds-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Binary outcome: Perception of vowel duration
+
+
+```r
+tidy(sanker_lm_1, effects = "fixed")
+```
+
+```
+## # A tibble: 2 × 6
+##   effect term         estimate std.error statistic  p.value
+##   &lt;chr&gt;  &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 fixed  (Intercept)    -3.01     0.311      -9.70 3.11e-22
+## 2 fixed  durationstep    0.538    0.0474     11.3  8.89e-30
+```
+
+---
+
+# Binary outcome: Perception of vowel duration
+
+&lt;img src="index_files/figure-html/sanker-lm-1-plot-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Binary outcome: Perception of vowel duration
+
+
+```r
+sanker_lm_2 &lt;- glmer(
+  Longresps ~
+    durationstep *
+    OrigCoda +
+    # random slope by OrigCoda leads to singular fit/non-convergence...
+    (durationstep | participant),
+  data = sanker2020,
+  family = binomial
+)
+
+tidy(sanker_lm_2, effects = "fixed")
+```
+
+```
+## # A tibble: 4 × 6
+##   effect term                        estimate std.error statistic  p.value
+##   &lt;chr&gt;  &lt;chr&gt;                          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
+## 1 fixed  (Intercept)                  -3.07      0.332     -9.25  2.35e-20
+## 2 fixed  durationstep                  0.526     0.0509    10.3   4.31e-25
+## 3 fixed  OrigCodavoiced                0.0925    0.225      0.411 6.81e- 1
+## 4 fixed  durationstep:OrigCodavoiced   0.0264    0.0371     0.710 4.78e- 1
+```
+
+
+---
+
+# Binary outcome: Perception of vowel duration
+
+&lt;img src="index_files/figure-html/sanker-lm-2-plot-1.png" height="500px" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Exercise 3: Perception of place of articulation in Pitjantjatjara
+
+- You create a set of stimuli by manipulating the Centre of Gravity of the burst of a stop to vary between 1 kHz and 4 kHz, in steps of 500 Hz (6 steps).
+
+- Your participants are native speakers of Pitjantjatjara (Central Australian), which has five stop places of articulation /p t ʈ c k/.
+
+- You ask them to identify what they hear as either /ʈ/ (0) or /c/ (1).
+
+- A linear model with a Bernoulli distribution for the response returns an intercept = -2.5 and an estimated effect of CoG step = 0.8.
+
+Calculate with the `plogis()` function:
+
+- The average probability of a /c/ response at CoG = 1000.
+
+- The average probability of a /c/ response at CoG = 2500.
+
+- The average probability of a /c/ response at CoG = 3750.
+
+---
+
+class: center middle
+
+![:scale 90%](../img/joe-caione-qO-PIF84Vxg-unsplash.jpg)
+
+???
+
+Photo by &lt;a href="https://unsplash.com/@joeyc?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;Joe Caione&lt;/a&gt; on &lt;a href="https://unsplash.com/s/photos/happy-puppy?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;Unsplash&lt;/a&gt;
+
+---
+
+class: center middle inverse
+
+# THE END
+
+---
+
+# BTW, the normal distribution ain't that normal
+
+.center[
+![:scale 40%](../img/skew-you.jpeg)
+]
+
+---
+
+class: center middle inverse
+
+# EXTRA
 
 ---
 
@@ -280,118 +433,6 @@ log(1)
 # From log-odds to odds
 
 &lt;img src="index_files/figure-html/log-odds-1.png" height="500px" style="display: block; margin: auto;" /&gt;
-
----
-
-# Logistic function
-
-We can transform logs into probabilities with the logistic function `plogis()`
-
-
-```
-## [1] 0.5
-```
-
-```
-## [1] 0.7310586
-```
-
---
-
-&lt;br&gt;
-
-Now try different positive and negative numbers with `plogis()`.
-
----
-
-# From log-odds to probabilities
-
-&lt;img src="index_files/figure-html/p-log-odds-1.png" height="500px" style="display: block; margin: auto;" /&gt;
-
----
-
-# Binary outcome: Bernoulli distribution
-
-
-```
-## # A tibble: 2 × 6
-##   effect term         estimate std.error statistic  p.value
-##   &lt;chr&gt;  &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
-## 1 fixed  (Intercept)    -3.01     0.311      -9.70 3.11e-22
-## 2 fixed  durationstep    0.538    0.0474     11.3  8.89e-30
-```
-
----
-
-# Binary outcome: Bernoulli distribution
-
-&lt;img src="index_files/figure-html/sanker-lm-1-plot-1.png" height="500px" style="display: block; margin: auto;" /&gt;
-
-
----
-
-# Binary outcome: Bernoulli distribution
-
-
-```
-## # A tibble: 4 × 6
-##   effect term                        estimate std.error statistic  p.value
-##   &lt;chr&gt;  &lt;chr&gt;                          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;
-## 1 fixed  (Intercept)                  -3.07      0.332     -9.25  2.35e-20
-## 2 fixed  durationstep                  0.526     0.0509    10.3   4.31e-25
-## 3 fixed  OrigCodavoiced                0.0925    0.225      0.411 6.81e- 1
-## 4 fixed  durationstep:OrigCodavoiced   0.0264    0.0371     0.710 4.78e- 1
-```
-
-
----
-
-# Binary outcome: Bernoulli distribution
-
-&lt;img src="index_files/figure-html/sanker-lm-2-plot-1.png" height="500px" style="display: block; margin: auto;" /&gt;
-
----
-
-# Exercise 3: Perception of place of articulation in Pitjantjatjara
-
-- You create a set of stimuli by manipulating the Centre of Gravity of the burst of a stop to vary between 1 kHz and 4 kHz, in steps of 500 Hz (6 steps).
-
-- Your participants are native speakers of Pitjantjatjara (Central Australian), which has five stop places of articulation /p t ʈ c k/.
-
-- You ask them to identify what they hear as either /ʈ/ (0) or /c/ (1).
-
-- A linear model with a Bernoulli distribution for the response returns an intercept = -2.5 and an estimated effect of CoG step = 0.8.
-
-Calculate with the `plogis()` function:
-
-- The average probability of a /c/ response at CoG = 1000.
-
-- The average probability of a /c/ response at CoG = 2500.
-
-- The average probability of a /c/ response at CoG = 3750.
-
----
-
-class: center middle
-
-![:scale 90%](../img/joe-caione-qO-PIF84Vxg-unsplash.jpg)
-
-???
-
-Photo by &lt;a href="https://unsplash.com/@joeyc?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;Joe Caione&lt;/a&gt; on &lt;a href="https://unsplash.com/s/photos/happy-puppy?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText"&gt;Unsplash&lt;/a&gt;
-
----
-
-class: center middle inverse
-
-# THE END
-
----
-
-# BTW, the normal distribution ain't that normal
-
-.center[
-![:scale 90%](../img/skew-you.jpeg)
     </textarea>
 <style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
 <script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
