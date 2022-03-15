@@ -1,0 +1,97 @@
+---
+title: "Exercises"
+output: html_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, dpi = 300, fig.width = 7, fig.height = 5, out.height = "500px", fig.align = "center")
+knitr::opts_knit$set(root.dir = here::here())
+library(tidyverse)
+theme_set(theme_minimal(base_size = 16))
+options(ggplot2.discrete.colour = RColorBrewer::brewer.pal(5, "Dark2"))
+library(ggeffects)
+options(show.signif.stars = FALSE)
+library(lme4)
+library(broom.mixed)
+```
+
+# Read data
+
+```{r read-data}
+sanker2020 <- read_csv("02-ident-discr/sanker2020.csv") %>%
+  mutate(OrigCoda = factor(OrigCoda, levels = c("voiceless", "voiced")))
+
+
+# Read SPP 2022 students' data
+spp2022 <- read_delim("02-ident-discr/anonymous-session1.txt")
+
+spp2022_ident <- spp2022 %>% filter(task == "identification") %>%
+  mutate(
+    step = as.numeric(str_sub(stimulus, 5, 5)),
+    response = factor(response, levels = c("i", "_"))
+  ) %>%
+  select(participant:reactionTime, step)
+
+spp2022_discr <- spp2022 %>% filter(task == "discrimination") %>%
+  mutate(
+    pair = case_when(
+      stepA == stepB ~ 0,
+      stepA == "step1" & stepB == "step3" ~ 2,
+      stepA == "step3" & stepB == "step1" ~ 2,
+      stepA == "step3" & stepB == "step5" ~ 4,
+      stepA == "step5" & stepB == "step3" ~ 4,
+      stepA == "step5" & stepB == "step7" ~ 6,
+      stepA == "step7" & stepB == "step7" ~ 6
+    ),
+    correct = factor(wasResponsecorrect)
+  ) %>%
+  filter(pair > 0)
+```
+
+# Exercise 1: Identification task
+
+Use the `spp2022_ident` data and run a linear model for identification data.
+
+Check the tibble:
+
+```{r spp22-ident}
+spp2022_ident
+```
+
+Now model `response` as a function of `step`.
+
+```{r spp22-ident-lm}
+# Insert the right code in place of `...`
+spp2022_ident_lm <- glmer(
+  ...,
+  data = ...,
+  family = ...
+)
+```
+
+Inspect the summary of the model.
+
+```{r spp22-ident-lm-sum}
+# Which function should you use to get the summary of the model?
+
+...
+```
+
+And finally, plot the model results!
+
+```{r spp22-ident-lm-plot}
+...
+```
+
+# Exercise 2: Discrimination task
+
+Try to run a model on the discrimination data as we just saw in class, but add ISI as another predictor in the model.
+
+You will have to include an interaction between `pair` and `interstimulusInterval`, like so: `pair * interstimulusInterval`.
+
+```{r spp22-discr-lm}
+...
+```
+
+Does it work?

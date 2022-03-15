@@ -3,4 +3,5 @@
 
 -   [Linear
     models](https://stefanocoretta.github.io/spp-2122/01-linear-models/index.html)
--   [Identification and descrimination analysis]() TBA
+-   [Identification and descrimination
+    analysis](https://stefanocoretta.github.io/spp-2122/02-ident-discr/index.html)
