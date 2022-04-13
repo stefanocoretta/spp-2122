@@ -301,7 +301,7 @@ class: center middle reverse
 ```{r spp2022-lm-discr, echo=TRUE}
 spp2022_lm_discr <- glmer(
   correct ~
-    pair + (pair | participant),
+    pair + I(pair^2) + (pair | participant),
   data = spp2022_discr,
   family = binomial
 )
